@@ -3,16 +3,19 @@ from math import sin, cos, sqrt, atan2, radians
 import matplotlib
 matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
+import numpy as np
 from openpyxl import load_workbook
 
 api_key = 'AIzaSyDSbtA0_Tz3jt215tYXIOTKArJR5zHWfYI'
 gm = ggm.Client(key=api_key)
+
 
 class Visualizer:
     def draw_node(self, coordinate):
         plt.axis('off')
         plt.plot(coordinate.long, coordinate.lat, 'bo', markersize=12)
         plt.text(coordinate.long, coordinate.lat, coordinate.address, fontsize=6)
+        plt.pause(0.05)
 
     def show(self):
         plt.show()
@@ -53,7 +56,19 @@ class Node:
         return R * c
 
 
-def load_data(file_name):
+def cal_distance(_nodes):
+    node_count = len(nodes)
+    matrix = np.zeros((node_count, node_count))
+    for i in range(node_count):
+        for j in range(node_count):
+            matrix[i][j] = matrix[j][i] = _nodes[i].distance_to(_nodes[j])
+    return matrix
+
+
+nodes = []
+
+
+def load_data(file_name, nodes):
     wb = load_workbook(file_name)
     print(wb.get_sheet_names())
     ws = wb.get_sheet_by_name('address')
@@ -65,6 +80,9 @@ def load_data(file_name):
         print(code, ' | ', address)
 
         node = Node(code=code, address=address)
+
+        nodes.append(node)
+
         visualizer = Visualizer()
         visualizer.draw_node(node)
 
@@ -73,17 +91,9 @@ def load_data(file_name):
 
 
 def __main__():
-    load_data('Database.xlsx')
-    # a = Node('', '61B Tú Xương, Phường 7, Quận 3, Hồ Chí Minh, Việt Nam')
-    # b = Node('', '250 Điện Biên Phủ, Phường 7, Quận 3, Hồ Chí Minh, Việt Nam')
-    # c = Node('', '261 Điện Biên Phủ, Phường 7, Quận 3, Hồ Chí Minh, Việt Nam')
-    # print(a.distance_to(b))
-    # print(a.distance_to(c))
-    # visualizer = Visualizer()
-    # visualizer.draw_point(a)
-    # visualizer.draw_point(b)
-    # visualizer.draw_point(c)
-    # visualizer.show()
-
+    load_data('Database.xlsx', nodes)
+    graph = cal_distance(nodes)
+    print(graph)
+    print(nodes)
 
 __main__()
